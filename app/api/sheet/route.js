@@ -1,133 +1,135 @@
 export async function GET() {
-  const sheetId = "1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY";
-  const gid = "391308531";
+  try {
+    const spreadsheetId = "1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY";
 
-  const res = await fetch(
-    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=${gid}&tqx=out:json`
-  );
+    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
 
-  const text = await res.text();
-  const json = JSON.parse(text.substring(47).slice(0, -2));
+    const res = await fetch(url);
+    const text = await res.text();
 
-  const rows = json.table.rows;
+    const json = JSON.parse(
+      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+    );
 
-  const headers = [
-    "Reservation ID",
-    "subject",
-    "Email From",
-    "Name",
-    "ThreadID",
-    "MessageID",
-    "Email To",
-    "Date",
-    "Event Type",
-    "Platform",
-    "Guest Name",
-    "Number of Guests",
-    "Adults",
-    "Children",
-    "Infants",
-    "Pets",
-    "Property Name",
-    "Listing ID",
-    "Check In",
-    "Check Out",
-    "Nights",
-    "Check In Time",
-    "Check Out Time",
-    "Total Paid",
-    "Host Payout",
-    "Cleaning Fee",
-    "Service Fee",
-    "Currency",
-    "Booking Status",
-    "Guest Message",
-    "Message Type",
-    "Last Message Sent",
-    "Response Deadline Hours",
-    "Early Check In Requested",
-    "Late Checkout Requested",
-    "Extension Requested",
-    "Special Requests",
-    "Email Subject Type",
-    "Reservation Confirmed",
-    "Reservation Updated",
-    "Canceled Reservation",
-    "Reservation Conversation",
-    "Inquiry",
-    "Same Day Inquiry",
-    "Pending Reservation Request",
-    "Change Request",
-    "Issue Resolution",
-    "Email from",
-    "Booking Confirmation",
-    "platform",
-  ];
+    const cols = json.table.cols.map((c) => c.label || "col");
 
-  function parseDate(value) {
-    if (!value) return null;
+    function parseGoogleDate(value) {
+      if (!value) return null;
 
-    // Google format: Date(2026,0,26)
-    const g = String(value).match(/Date\((\d+),(\d+),(\d+)\)/);
-    if (g) {
-      const y = Number(g[1]);
-      const m = Number(g[2]);
-      const d = Number(g[3]);
-      return new Date(y, m, d);
+      const match = String(value).match(/Date\((\d+),(\d+),(\d+)\)/);
+      if (!match) return null;
+
+      const [_, y, m, d] = match;
+      return new Date(Number(y), Number(m), Number(d));
     }
 
-    // ISO format: 2026-01-26
-    if (typeof value === "string" && value.includes("-")) {
-      const d = new Date(value + "T00:00:00");
-      return isNaN(d) ? null : d;
+    function formatDate(date) {
+      if (!date) return null;
+
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+
+      return `${y}-${m}-${d}`;
     }
 
-    return null;
-  }
+    const today = new Date();
+    const last90Days = new Date();
+    last90Days.setDate(today.getDate() - 90);
 
-  // format date with +1 month fix
-  function formatDate(date) {
-    if (!date) return null;
+    const data = json.table.rows
+      .map((row) => {
+        const obj = {};
 
-    const y = date.getFullYear();
-    const m = date.getMonth() + 1; // FIX HERE
-    const d = date.getDate();
+        row.c.forEach((cell, i) => {
+          const raw = cell?.v ?? null;
+          obj[cols[i] || `col${i}`] = raw;
+        });
 
-    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-  }
+        return obj;
+      })
+      .filter((row) => {
+        const checkIn = parseGoogleDate(row["Check In"]);
+        if (!checkIn) return false;
 
-  const today = new Date();
-  const last90Days = new Date();
-  last90Days.setDate(today.getDate() - 90);
-
-  const data = rows
-    .map((r) => {
-      const values = r.c.map((c) => c?.v ?? "");
-      const obj = {};
-
-      headers.forEach((h, i) => {
-        obj[h] = values[i] ?? "";
+        // last 90 days + future dates allowed
+        return checkIn >= last90Days;
+      })
+      .map((row) => {
+        return {
+          ...row,
+          "Check In": formatDate(parseGoogleDate(row["Check In"])),
+          "Check Out": formatDate(parseGoogleDate(row["Check Out"])),
+          Date: formatDate(parseGoogleDate(row["Date"])),
+        };
       });
 
-      return obj;
-    })
-    .filter((row) => {
-      const checkIn = parseDate(row["Check In"]);
-      if (!checkIn) return false;
-      return checkIn >= last90Days;
-    })
-    .map((row) => {
-      row["Check In"] = formatDate(parseDate(row["Check In"]));
-      row["Check Out"] = formatDate(parseDate(row["Check Out"]));
-      row["Date"] = formatDate(parseDate(row["Date"]));
-
-      return row;
+    return Response.json({
+      success: true,
+      count: data.length,
+      range: "last 90 days + future",
+      rows: data,
     });
-
-  return Response.json({
-    message: `Number of records found: ${data.length}`,
-    count: data.length,
-    data,
-  });
-  //testing
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
 }
+// export async function GET() {
+//   try {
+//     const spreadsheetId = "1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY";
+
+//     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
+
+//     const res = await fetch(url);
+//     const text = await res.text();
+
+//     const json = JSON.parse(
+//       text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+//     );
+
+//     const cols = json.table.cols.map((c) => c.label || "col");
+
+//     function parseGoogleDate(value) {
+//       if (!value) return null;
+
+//       const match = String(value).match(/Date\((\d+),(\d+),(\d+)\)/);
+//       if (!match) return value;
+
+//       const [_, y, m, d] = match;
+//       const date = new Date(Number(y), Number(m), Number(d));
+
+//       return date.toISOString().split("T")[0]; // YYYY-MM-DD
+//     }
+
+//     const data = json.table.rows.map((row) => {
+//       const obj = {};
+
+//       row.c.forEach((cell, i) => {
+//         const raw = cell?.v ?? null;
+//         obj[cols[i] || `col${i}`] = parseGoogleDate(raw);
+//       });
+
+//       return obj;
+//     });
+
+//     return Response.json({
+//       success: true,
+//       count: data.length,
+//       rows: data,
+//     });
+//   } catch (error) {
+//     return Response.json(
+//       {
+//         success: false,
+//         error: error.message,
+//       },
+//       { status: 500 }
+//     );
+//   }
+// }
