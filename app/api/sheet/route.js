@@ -1,8 +1,12 @@
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const sheetId = "1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY";
+  const gid = "391308531";
 
   const res = await fetch(
-    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`,
+    { cache: "no-store" }
   );
 
   const text = await res.text();
@@ -63,45 +67,12 @@ export async function GET() {
     "platform",
   ];
 
-  function parseDate(value) {
-    if (!value) return null;
-
-    // ISO format
-    if (value.includes("-")) {
-      const d = new Date(value);
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    // Google Sheets format: Date(2026,3,27)
-    const match = value.match(/Date\((\d+),(\d+),(\d+)\)/);
-    if (match) {
-      const [, y, m, d] = match.map(Number);
-      return new Date(y, m - 1, d);
-    }
-
-    return null;
-  }
-
-  const start = new Date("2026-03-23");
-  const end = new Date("2026-04-23");
-
-  const data = rows
-    .map((r) => {
-      const values = r.c.map((c) => c?.v ?? "");
-
-      const obj = {};
-      headers.forEach((h, i) => {
-        obj[h] = values[i] ?? "";
-      });
-
-      return obj;
-    })
-    .filter((row) => {
-      const checkOut = parseDate(row["Check Out"]);
-      if (!checkOut) return false;
-
-      return checkOut >= start && checkOut <= end;
-    });
+  const data = rows.map((r) => {
+    const values = r.c.map((c) => c?.v ?? "");
+    const obj = {};
+    headers.forEach((h, i) => (obj[h] = values[i] ?? ""));
+    return obj;
+  });
 
   return Response.json({
     count: data.length,
@@ -111,7 +82,6 @@ export async function GET() {
 // export async function GET() {
 //   const sheetId = "1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY";
 
-//   https://docs.google.com/spreadsheets/d/1R2c8STbQ8Q2q9aqgB3DHI4_xcBwMd-gqOlDaGIHTkxY/edit?gid=777552863#gid=777552863
 //   const res = await fetch(
 //     `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`
 //   );
@@ -174,6 +144,28 @@ export async function GET() {
 //     "platform",
 //   ];
 
+//   function parseDate(value) {
+//     if (!value) return null;
+
+//     // ISO format
+//     if (value.includes("-")) {
+//       const d = new Date(value);
+//       return isNaN(d.getTime()) ? null : d;
+//     }
+
+//     // Google Sheets format: Date(2026,3,27)
+//     const match = value.match(/Date\((\d+),(\d+),(\d+)\)/);
+//     if (match) {
+//       const [, y, m, d] = match.map(Number);
+//       return new Date(y, m - 1, d);
+//     }
+
+//     return null;
+//   }
+
+//   const start = new Date("2026-03-23");
+//   const end = new Date("2026-04-23");
+
 //   const data = rows
 //     .map((r) => {
 //       const values = r.c.map((c) => c?.v ?? "");
@@ -185,10 +177,15 @@ export async function GET() {
 
 //       return obj;
 //     })
-//     .filter((row) => row["Email From"] === "aircierge.n8n@gmail.com");
+//     .filter((row) => {
+//       const checkOut = parseDate(row["Check Out"]);
+//       if (!checkOut) return false;
+
+//       return checkOut >= start && checkOut <= end;
+//     });
 
 //   return Response.json({
-//     headers,
+//     count: data.length,
 //     data,
 //   });
 // }
