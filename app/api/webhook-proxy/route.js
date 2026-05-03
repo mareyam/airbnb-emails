@@ -1,6 +1,5 @@
 const WEBHOOK_URL =
-  "https://airciergen8n.app.n8n.cloud/webhook/bd36dfa0-5a8f-4e90-9cf9-511077dcecb3";
-
+  "https://airciergen8n.app.n8n.cloud/webhook/1b081626-61e0-4342-bbe4-b43c0500408b";
 export async function POST(request) {
   console.log("➡️ POST /api/webhook-proxy");
 
@@ -36,26 +35,5 @@ export async function POST(request) {
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
-// const WEBHOOK_URL =
-//   "https://airciergen8n.app.n8n.cloud/webhook/bd36dfa0-5a8f-4e90-9cf9-511077dcecb3";
 
-// export async function POST(request) {
-//   try {
-//     const body = await request.json();
-
-//     const res = await fetch(WEBHOOK_URL, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(body),
-//     });
-
-//     const data = await res.json();w
-//     console.log("data is");
-//     console.log(data);
-
-//     return Response.json(data);
-//   } catch (err) {
-//     console.error("Webhook proxy error:", err);
-//     return Response.json({ error: err.message }, { status: 500 });
-//   }
-// }
+// "https://airciergen8n.app.n8n.cloud/webhook/bd36dfa0-5a8f-4e90-9cf9-511077dcecb3";
