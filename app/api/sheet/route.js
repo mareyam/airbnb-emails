@@ -74,21 +74,13 @@ export async function GET(req) {
       )}-${String(d.getDate()).padStart(2, "0")}`;
     }
 
-    // filter last 90 days
-    const last90Days = new Date();
-    last90Days.setDate(last90Days.getDate() - 90);
 
-    const filtered = dataRows
-      .filter((row) => {
-        const checkIn = parseDate(row["Check In"]);
-        return checkIn && checkIn >= last90Days;
-      })
-      .map((row) => ({
-        ...row,
-        "Check In": formatDate(parseDate(row["Check In"])),
-        "Check Out": formatDate(parseDate(row["Check Out"])),
-        Date: formatDate(parseDate(row["Date"])),
-      }));
+    const filtered = dataRows.map((row) => ({
+      ...row,
+      "Check In": formatDate(parseDate(row["Check In"])),
+      "Check Out": formatDate(parseDate(row["Check Out"])),
+      Date: formatDate(parseDate(row["Date"])),
+    }));
 
     console.log("✅ filtered:", filtered.length);
 
@@ -108,6 +100,24 @@ export async function GET(req) {
   }
 }
 
+
+  // filter last 90 days
+    // const last90Days = new Date();
+    // last90Days.setDate(last90Days.getDate() - 90);
+
+    // const filtered = dataRows
+    //   .filter((row) => {
+    //     const checkIn = parseDate(row["Check In"]);
+    //     return checkIn && checkIn >= last90Days;
+    //   })
+    //   .map((row) => ({
+    //     ...row,
+    //     "Check In": formatDate(parseDate(row["Check In"])),
+    //     "Check Out": formatDate(parseDate(row["Check Out"])),
+    //     Date: formatDate(parseDate(row["Date"])),
+    //   }));
+
+    // console.log("✅ filtered:", filtered.length);
 // import { cookies } from "next/headers";
 // import { google } from "googleapis";
 
