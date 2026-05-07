@@ -23,14 +23,13 @@ export async function GET(request) {
   }
 
   try {
-    const params = new URLSearchParams({
-      limit: "100",
-      search_query_native: "airbnb OR aircierge",
-    });
+    const params = new URLSearchParams({ limit: "20" });
 
     if (since) {
       const receivedAfter = Math.floor(new Date(since).getTime() / 1000);
       params.set("received_after", String(receivedAfter));
+    } else {
+      params.set("search_query_native", "airbnb OR aircierge");
     }
 
     const url = `${NYLAS_API_URI}/v3/grants/${grantId}/messages?${params}`;
