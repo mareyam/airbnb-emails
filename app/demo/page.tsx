@@ -171,10 +171,11 @@ function CalendarView() {
   const COL_W = 64;
 
   useEffect(() => {
-    fetch(
-      "https://airciergen8n.app.n8n.cloud/webhook/31a4efc0-9adf-4d1a-baf9-13085f9516e1",
-      { method: "POST" }
-    )
+    fetch("/api/n8n-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ webhookUrl: "https://airciergen8n.app.n8n.cloud/webhook/31a4efc0-9adf-4d1a-baf9-13085f9516e1" }),
+    })
       .then((r) => r.json())
       .then((json) => {
         const raw = Array.isArray(json)
@@ -560,10 +561,11 @@ function UpsellView() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch(
-      "https://airciergen8n.app.n8n.cloud/webhook/5068482f-cd63-4aaf-8724-0d3245e492b5",
-      { method: "POST" }
-    )
+    fetch("/api/n8n-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ webhookUrl: "https://airciergen8n.app.n8n.cloud/webhook/5068482f-cd63-4aaf-8724-0d3245e492b5" }),
+    })
       .then((r) => r.json())
       .then((json) => {
         const raw: any[] = Array.isArray(json)
@@ -906,10 +908,11 @@ function GuestIntelligenceView() {
   const [guests, setGuests] = useState<GuestConfidence[]>([]);
 
   useEffect(() => {
-    fetch(
-      "https://airciergen8n.app.n8n.cloud/webhook/6c5ad055-0485-4855-962f-f956e0359936",
-      { method: "POST" }
-    )
+    fetch("/api/n8n-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ webhookUrl: "https://airciergen8n.app.n8n.cloud/webhook/6c5ad055-0485-4855-962f-f956e0359936" }),
+    })
       .then((r) => r.json())
       .then((json) => setGuests(Array.isArray(json) ? json : json?.data ?? []))
       .catch(() => {});
@@ -1108,10 +1111,11 @@ function PricingView() {
   const [rows, setRows] = useState<PricingRow[]>([]);
 
   useEffect(() => {
-    fetch(
-      "https://airciergen8n.app.n8n.cloud/webhook/1a31c355-b924-4355-b2af-bf48b164f2c4",
-      { method: "POST" }
-    )
+    fetch("/api/n8n-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ webhookUrl: "https://airciergen8n.app.n8n.cloud/webhook/1a31c355-b924-4355-b2af-bf48b164f2c4" }),
+    })
       .then((r) => r.json())
       .then((json) => {
         const data: PricingRow[] = Array.isArray(json)
@@ -1221,10 +1225,11 @@ export default function DemoPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(
-      "https://airciergen8n.app.n8n.cloud/webhook/bd36dfa0-5a8f-4e90-9cf9-511077dcecb3",
-      { method: "POST" }
-    )
+    fetch("/api/sheets-sync-trigger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
       .then((r) => r.json())
       .then((json) => {
         setData(Array.isArray(json) ? json[0] : json);
@@ -1596,7 +1601,7 @@ export default function DemoPage() {
               <div style={s.cardHeader}>
                 <span style={s.cardTitle}>Needs your attention</span>
                 <span style={s.cardCount}>
-                  {data?.needAttention.length ?? 0} items
+                  {data?.needAttention?.length ?? 0} items
                 </span>
               </div>
               {(data?.needAttention ?? []).map((item, i, arr) => (
@@ -1631,7 +1636,7 @@ export default function DemoPage() {
               <div style={s.cardHeader}>
                 <span style={s.cardTitle}>Today's guests</span>
                 <span style={s.cardCount}>
-                  {data?.todaysGuests.length ?? 0} stays
+                  {data?.todaysGuests?.length ?? 0} stays
                 </span>
               </div>
               {(data?.todaysGuests ?? []).map((g, i, arr) => (

@@ -129,6 +129,12 @@ export default function MessagesPage() {
 
     setNoNewEmails(null);
     setSyncing(true);
+
+    fetch("/api/sheets-sync-trigger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }).catch(() => {});
     const CHUNK_SIZE = 15;
 
     try {
@@ -165,7 +171,7 @@ export default function MessagesPage() {
         const webhookRes = await fetch(WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user: { name: email.split("@")[0], email, image: "" }, emails: batch }),
+          body: JSON.stringify({ email, user: { name: email.split("@")[0], email, image: "" }, emails: batch }),
         });
         if (!webhookRes.ok) continue;
         const raw = await webhookRes.json().catch(() => null);
@@ -242,6 +248,22 @@ export default function MessagesPage() {
             {userEmail && (
               <span style={{ fontSize: 13, color: "#666" }}>{userEmail}</span>
             )}
+            <button
+              onClick={() => router.push("/demo")}
+              style={{
+                background: "#fff",
+                color: "#0f0f0f",
+                border: "none",
+                borderRadius: 6,
+                padding: "6px 14px",
+                fontSize: 12,
+                cursor: "pointer",
+                fontFamily: "system-ui",
+                fontWeight: 600,
+              }}
+            >
+              Go to Dashboard
+            </button>
             <button
               onClick={() => {
                 setUploadFile(null);
